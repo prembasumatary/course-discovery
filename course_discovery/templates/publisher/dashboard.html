@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}
+{% trans "Dashboard" %}
+{% endblock title %}
+
+{% block content %}
+    {% include 'publisher/course_runs_list.html' %}
+{% endblock %}
