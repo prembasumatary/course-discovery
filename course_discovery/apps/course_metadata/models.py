@@ -232,6 +232,9 @@ class Course(TimeStampedModel):
     """ Course model. """
     partner = models.ForeignKey(Partner)
     uuid = models.UUIDField(default=uuid4, editable=False, verbose_name=_('UUID'))
+    _canonical_course_runs = models.ManyToManyField(
+        'CourseRun', through='CanonicalCourseRunCourse', related_name='canonical_courses'
+    )
     key = models.CharField(max_length=255)
     title = models.CharField(max_length=255, default=None, null=True, blank=True)
     short_description = models.CharField(max_length=255, default=None, null=True, blank=True)
@@ -290,6 +293,10 @@ class Course(TimeStampedModel):
             )
         )
 
+    @property
+    def canonical_course_run(self):
+        return self._canonical_course_runs.first()
+
     @classmethod
     def search(cls, query):
         """ Queries the search index.
@@ -324,6 +331,9 @@ class CourseRun(TimeStampedModel):
 
     uuid = models.UUIDField(default=uuid4, editable=False, verbose_name=_('UUID'))
     course = models.ForeignKey(Course, related_name='course_runs')
+    _canonical_courses = models.ManyToManyField(
+        'Course', through='CanonicalCourseRunCourse', related_name='canonical_course_runs'
+    )
     key = models.CharField(max_length=255, unique=True)
     status = models.CharField(max_length=255, null=False, blank=False, db_index=True, choices=CourseRunStatus.choices,
                               validators=[CourseRunStatus.validator])
@@ -477,6 +487,10 @@ class CourseRun(TimeStampedModel):
         else:
             return _('Upcoming')
 
+    @property
+    def canonical_course(self):
+        return self._canonical_courses.first()
+
     @classmethod
     def search(cls, query):
         """ Queries the search index.
@@ -492,6 +506,16 @@ class CourseRun(TimeStampedModel):
 
     def __str__(self):
         return '{key}: {title}'.format(key=self.key, title=self.title)
+
+
+class CanonicalCourseRunCourse(TimeStampedModel):
+    course_run = models.ForeignKey(CourseRun, null=False, unique=True, related_name='canonical_course_runs')
+    course = models.ForeignKey(Course, null=False, unique=True, related_name='canonical_courses')
+
+    def __str__(self):
+        return '{course}: {course_run}'.format(
+            course=self.course.title, course_run=self.course_run.key
+        )
 
 
 class SeatType(TimeStampedModel):

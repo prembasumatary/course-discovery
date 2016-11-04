@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from course_discovery.apps.course_metadata.forms import ProgramAdminForm
+from course_discovery.apps.course_metadata.forms import ProgramAdminForm, CanonicalCourseRunCourseAdminForm
 from course_discovery.apps.course_metadata.models import *  # pylint: disable=wildcard-import
 from course_discovery.apps.course_metadata.publishers import ProgramPublisherException
 
@@ -185,6 +185,13 @@ class PersonAdmin(admin.ModelAdmin):
     ordering = ('family_name', 'given_name', 'uuid',)
     readonly_fields = ('uuid',)
     search_fields = ('uuid', 'family_name', 'given_name', 'slug',)
+
+
+@admin.register(CanonicalCourseRunCourse)
+class CanonicalCourseRunCourseAdmin(admin.ModelAdmin):
+    form = CanonicalCourseRunCourseAdminForm
+    ordering = ('course',)
+    search_fields = ('course__title', 'course__key', 'course_run__key',)
 
 
 class NamedModelAdmin(admin.ModelAdmin):

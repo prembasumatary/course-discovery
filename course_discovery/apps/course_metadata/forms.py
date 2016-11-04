@@ -5,7 +5,7 @@ from django.forms.utils import ErrorList
 from django.utils.translation import ugettext_lazy as _
 
 from course_discovery.apps.course_metadata.choices import ProgramStatus
-from course_discovery.apps.course_metadata.models import Program, CourseRun
+from course_discovery.apps.course_metadata.models import Program, CourseRun, CanonicalCourseRunCourse
 
 
 def filter_choices_to_render_with_order_preserved(self, selected_choices):
@@ -99,3 +99,23 @@ class CourseRunSelectionForm(forms.ModelForm):
         self.fields['excluded_course_runs'].queryset = CourseRun.objects.filter(
             course__id__in=query_set
         )
+
+
+class CanonicalCourseRunCourseAdminForm(forms.ModelForm):
+    class Meta:
+        model = CanonicalCourseRunCourse
+        fields = '__all__'
+        widgets = {
+            'course': autocomplete.ModelSelect2(
+                url='admin_metadata:course-autocomplete',
+                attrs={
+                    'data-minimum-input-length': 3,
+                }
+            ),
+            'course_run': autocomplete.ModelSelect2(
+                url='admin_metadata:course-run-autocomplete',
+                attrs={
+                    'data-minimum-input-length': 3,
+                }
+            ),
+        }
