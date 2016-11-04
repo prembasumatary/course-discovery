@@ -12,7 +12,7 @@ from course_discovery.apps.core.models import Currency
 from course_discovery.apps.course_metadata.choices import CourseRunStatus, CourseRunPacing
 from course_discovery.apps.course_metadata.data_loaders import AbstractDataLoader
 from course_discovery.apps.course_metadata.models import (
-    Video, Organization, Seat, CourseRun, Program, Course, ProgramType,
+    Video, Organization, Seat, CourseRun, Program, Course, ProgramType, CanonicalCourseRunCourse
 )
 
 logger = logging.getLogger(__name__)
@@ -107,8 +107,20 @@ class CoursesApiDataLoader(AbstractDataLoader):
 
             try:
                 body = self.clean_strings(body)
-                course = self.update_course(body)
-                self.update_course_run(course, body)
+                course_run = self.get_course_run(body)
+
+                if course_run:
+                    self.update_course_run(course_run, body)
+                    if course_run.canonical_course:
+                        course = self.update_course(course_run.canonical_course, body)
+                        self.set_subjects(course, body)
+                        self.set_authoring_organizations(course, body)
+                        logger.info('Processed course with key [%s].', course.key)
+                else:
+                    course, created = self.get_or_create_course(body)
+                    course_run = self.create_course_run(course, body)
+                    if created:
+                        CanonicalCourseRunCourse.objects.create(course=course, course_run=course_run)
             except:  # pylint: disable=bare-except
                 msg = 'An error occurred while updating {course_run} from {api_url}'.format(
                     course_run=course_run_id,
@@ -116,32 +128,55 @@ class CoursesApiDataLoader(AbstractDataLoader):
                 )
                 logger.exception(msg)
 
-    def update_course(self, body):
+    def get_course_run(self, data):
+        course_run_key = data['id']
+        try:
+            return CourseRun.objects.get(key__iexact=course_run_key)
+        except CourseRun.DoesNotExist:
+            return None
+
+    def update_course_run(self, course_run, data):
+        validated_data = self.format_course_run_data(data)
+        self._update_instance(course_run, validated_data)
+
+        logger.info('Processed course run with UUID [%s].', course_run.uuid)
+
+    def create_course_run(self, course, body):
+        defaults = self.format_course_run_data(body, course=course)
+
+        return CourseRun.objects.create(**defaults)
+
+    def get_or_create_course(self, body):
         course_run_key = CourseKey.from_string(body['id'])
         course_key = self.get_course_key_from_course_run_key(course_run_key)
+        defaults = self.format_course_data(body)
 
-        defaults = {
-            'key': course_key,
-            'title': body['name'],
-        }
         course, created = Course.objects.get_or_create(key__iexact=course_key, partner=self.partner, defaults=defaults)
 
         if created:
             # NOTE (CCB): Use the data from the CourseKey since the Course API exposes display names for org and number,
             # which may not be unique for an organization.
             key = course_run_key.org
-            defaults = {'key': key}
-            organization, __ = Organization.objects.get_or_create(key__iexact=key, partner=self.partner,
-                                                                  defaults=defaults)
+            organization, __ = Organization.objects.get_or_create(key__iexact=key, partner=self.partner)
             course.authoring_organizations.add(organization)
 
+        return (course, created)
+
+    def update_course(self, course, body):
+        validated_data = self.format_course_data(body)
+        self._update_instance(course, validated_data)
+
         logger.info('Processed course with key [%s].', course_key)
+
         return course
 
-    def update_course_run(self, course, body):
-        key = body['id']
+    def _update_instance(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+    def format_course_run_data(self, body, course=None):
         defaults = {
-            'key': key,
             'end': self.parse_date(body['end']),
             'enrollment_start': self.parse_date(body['enrollment_start']),
             'enrollment_end': self.parse_date(body['enrollment_end']),
@@ -160,10 +195,17 @@ class CoursesApiDataLoader(AbstractDataLoader):
                 'mobile_available': body.get('mobile_available') or False,
             })
 
-        course_run, __ = course.course_runs.update_or_create(key__iexact=key, defaults=defaults)
+        if course:
+            defaults['course'] = course
 
-        logger.info('Processed course run with key [%s].', course_run.key)
-        return course_run
+        return defaults
+
+    def format_course_data(self, body):
+        defaults = {
+            'title': body['name'],
+        }
+
+        return defaults
 
     def get_pacing_type(self, body):
         pacing = body.get('pacing')
