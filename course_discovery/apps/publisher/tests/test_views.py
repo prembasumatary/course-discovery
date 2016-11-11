@@ -905,7 +905,10 @@ class DashboardTests(TestCase):
         self.page_url = reverse('publisher:publisher_dashboard')
 
         # Create courses with `DRAFT` and `NEEDS_REVIEW` and PUBLISHED state
-        self.course_run_1 = factories.CourseRunFactory(state=factories.StateFactory(name=State.DRAFT))
+        self.draft_state = factories.StateFactory(name=State.DRAFT)
+
+        # following will create 2 un-published, 1 published and 2 studio request course runs.
+        self.course_run_1 = factories.CourseRunFactory(state=self.draft_state)
         self.course_run_2 = factories.CourseRunFactory(state=factories.StateFactory(name=State.NEEDS_REVIEW))
         self.course_run_3 = factories.CourseRunFactory(state=factories.StateFactory(name=State.PUBLISHED))
 
@@ -932,23 +935,23 @@ class DashboardTests(TestCase):
     def test_different_course_runs_counts(self):
         """ Verify that user can access published and un-published and
         studio requests course runs. """
-        self.assert_dashboard_reponse(2, 1, 2)
+        self.assert_dashboard_response(2, 1, 2)
 
     def test_studio_request_course_runs(self):
         """ Verify that page loads the list course runs which need studio request. """
         self.course_run_1.lms_course_id = 'test'
         self.course_run_1.save()
-        self.assert_dashboard_reponse(2, 1, 1)
+        self.assert_dashboard_response(2, 1, 1)
         self.course_run_2.lms_course_id = 'test-2'
         self.course_run_2.save()
-        self.assert_dashboard_reponse(2, 1, 0)
+        self.assert_dashboard_response(2, 1, 0)
 
-    def assert_dashboard_reponse(self, unpublished_count, published_count, studio_requests):
+    def assert_dashboard_response(self, unpublished_count, published_count, studio_requests):
         response = self.client.get(self.page_url)
         self.assertEqual(response.status_code, 200)
 
-        self.assertEqual(len(response.context['unpublished_courseruns']), unpublished_count)
-        self.assertEqual(len(response.context['published_courseruns']), published_count)
+        self.assertEqual(len(response.context['unpublished_course_runs']), unpublished_count)
+        self.assertEqual(len(response.context['published_course_runs']), published_count)
         self.assertEqual(len(response.context['studio_request_courses']), studio_requests)
 
         if studio_requests > 0:
@@ -956,13 +959,24 @@ class DashboardTests(TestCase):
         else:
             self.assertContains(response, 'There are no course-runs require studio instance.')
 
+        if published_count > 0:
+            self.assertContains(response, '<table class="data-table-published display"')
+        else:
+            self.assertContains(response, "Looks like you haven't publish a course yet")
+
     def test_without_studio_request_course_runs(self):
         """ Verify that studio tab indicates a message if no course-run available. """
         self.course_run_1.lms_course_id = 'test'
         self.course_run_1.save()
         self.course_run_2.lms_course_id = 'test-2'
         self.course_run_2.save()
-        self.assert_dashboard_reponse(2, 1, 0)
+        self.assert_dashboard_response(2, 1, 0)
+
+    def test_without_published_course_runs(self):
+        """ Verify that published tab indicates a message if no course-run available. """
+        self.course_run_3.state = self.draft_state
+        self.course_run_3.save()
+        self.assert_dashboard_response(3, 0, 3)
 
 
 class ToggleEmailNotificationTests(TestCase):
