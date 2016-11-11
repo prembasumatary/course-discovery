@@ -2,6 +2,7 @@
 Course publisher views.
 """
 import json
+from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.models import Group
@@ -31,6 +32,7 @@ SEATS_HIDDEN_FIELDS = ['price', 'currency', 'upgrade_deadline', 'credit_provider
 class Dashboard(mixins.LoginRequiredMixin, ListView):
     """ Create Course View."""
     template_name = 'publisher/dashboard.html'
+    default_days = 30
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -45,7 +47,8 @@ class Dashboard(mixins.LoginRequiredMixin, ListView):
         context = super(Dashboard, self).get_context_data(**kwargs)
         course_runs = context.get('object_list')
         published_course_runs = course_runs.filter(
-            state__name=State.PUBLISHED
+            state__name=State.PUBLISHED,
+            modified__gt=datetime.today() - timedelta(days=self.default_days)
         ).select_related('state').all().order_by('-state__modified')
         unpublished_course_runs = course_runs.exclude(state__name=State.PUBLISHED)
         studio_request_courses = unpublished_course_runs.filter(lms_course_id__isnull=True)
