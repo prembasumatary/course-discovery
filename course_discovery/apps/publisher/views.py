@@ -48,7 +48,7 @@ class Dashboard(mixins.LoginRequiredMixin, ListView):
         course_runs = context.get('object_list')
         published_course_runs = course_runs.filter(
             state__name=State.PUBLISHED,
-            modified__gt=datetime.today() - timedelta(days=self.default_days)
+            state__modified__gt=datetime.today() - timedelta(days=self.default_days)
         ).select_related('state').all().order_by('-state__modified')
         unpublished_course_runs = course_runs.exclude(state__name=State.PUBLISHED)
         studio_request_courses = unpublished_course_runs.filter(lms_course_id__isnull=True)
