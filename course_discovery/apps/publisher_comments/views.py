@@ -3,8 +3,13 @@ Customize custom views.
 """
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import UpdateView
+from rest_framework.generics import RetrieveUpdateAPIView
 
+from course_discovery.apps.publisher import mixins
+from course_discovery.apps.publisher_comments.serializers import UpdateCommentSerializer
 from course_discovery.apps.publisher_comments.forms import CommentEditForm
 from course_discovery.apps.publisher_comments.models import Comments
 
@@ -37,3 +42,13 @@ class UpdateCommentView(UpdateView):
             url = reverse('publisher:publisher_course_runs_edit', kwargs={'pk': self.object.object_pk})
 
         return url
+
+
+class UpdateCourseKeyView(mixins.LoginRequiredMixin, RetrieveUpdateAPIView):
+    queryset = Comments.objects.all()
+    serializer_class = UpdateCommentSerializer
+
+    @method_decorator(csrf_exempt)
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
