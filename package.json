@@ -6,7 +6,22 @@
     "url": "git://github.com/edx/course-discovery"
   },
   "dependencies": {
-    "bower": "^1.8.0"
+    "bootstrap-sass": "^3.3.7",
+    "bower": "^1.8.0",
+    "css-loader": "^0.26.0",
+    "datatables.net": "^1.10.12",
+    "datatables.net-bs": "^1.10.12",
+    "edx-pattern-library": "^0.18.0",
+    "extract-text-webpack-plugin": "^2.0.0-beta.5",
+    "file-loader": "^0.9.0",
+    "imports-loader": "^0.7.0",
+    "jquery": "^3.1.1",
+    "node-sass": "^4.3.0",
+    "sass-loader": "^4.1.1",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
+    "webpack": "^2.2.0-rc.7",
+    "webpack-bundle-tracker": "0.2.0"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
