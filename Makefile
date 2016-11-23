@@ -1,9 +1,9 @@
 .DEFAULT_GOAL := test
-NODE_BIN=./node_modules/.bin
+NODE_BIN=$(CURDIR)/node_modules/.bin
 
 .PHONY: accept clean compile_translations dummy_translations extract_translations fake_translations help html_coverage \
 	migrate pull_translations push_translations quality requirements production-requirements test \
-	update_translations validate stop-devstack
+	update_translations validate stop-devstack static
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -34,12 +34,14 @@ help:
 	@echo ""
 
 static:
-	$(NODE_BIN)/r.js -o build.js
-	python manage.py collectstatic --noinput
-	python manage.py compress -v3 --force
+	cd course_discovery && $(NODE_BIN)/webpack --config webpack.config.js --display-error-details
+	#python manage.py collectstatic --noinput
+
+static_watch:
+	cd course_discovery && $(NODE_BIN)/webpack --config webpack.config.js --display-error-details --watch
 
 clean_static:
-	rm -rf course_discovery/assets/ course_discovery/static/build/
+	rm -rf course_discovery/assets/ course_discovery/static/bundles/
 
 clean:
 	find . -name '*.pyc' -delete

@@ -1,6 +1,6 @@
 {# Base template for edX-specific pages. #}
 
-{% load compress %}
+{% load render_bundle from webpack_loader %}
 {% load staticfiles %}
 
 <!DOCTYPE html>
@@ -10,15 +10,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock title %} | {{ platform_name }}</title>
 
-    {% compress css %}
-        {% block stylesheets %}
-            {% if language_bidi %}
-                <link rel="stylesheet" href="{% static 'sass/main-rtl.scss' %}" type="text/x-scss">
-            {% else %}
-                <link rel="stylesheet" href="{% static 'sass/main-ltr.scss' %}" type="text/x-scss">
-            {% endif %}
-        {% endblock %}
-    {% endcompress %}
+    {% if language_bidi %}
+        {% render_bundle 'main-rtl' 'css' %}
+    {% else %}
+        {% render_bundle 'main' 'css' %}
+    {% endif %}
 </head>
 
 <body>
@@ -26,6 +22,7 @@
 
 {% block js %}
     <script src="{% url 'javascript-catalog' %}"></script>
+    {% render_bundle 'main' 'js' %}
 {% endblock %}
 </body>
 </html>

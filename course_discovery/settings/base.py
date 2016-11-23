@@ -51,6 +51,7 @@ THIRD_PARTY_APPS = [
     'taggit',
     'taggit_serializer',
     'solo',
+    'webpack_loader',
 ]
 
 PROJECT_APPS = [
@@ -157,6 +158,13 @@ COMPRESS_PRECOMPILERS = (
 COMPRESS_CSS_FILTERS = [
     'compressor.filters.css_default.CssAbsoluteFilter',
 ]
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': root('webpack-stats.json'),
+    }
+}
 
 # TEMPLATE CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.8/ref/settings/#templates
