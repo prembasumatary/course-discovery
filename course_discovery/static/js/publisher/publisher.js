@@ -1,3 +1,5 @@
+var $ = require('jquery');
+
 $(document).ready(function(){
     $(".administration-nav .tab-container > button").click(function(event) {
         event.preventDefault();
