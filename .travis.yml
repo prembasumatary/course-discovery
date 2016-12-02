@@ -16,7 +16,6 @@ cache:
   - directories:
     - $HOME/.cache/pip
     - node_modules
-    - course_discovery/static/bower_components
 
 before_install:
     - "export DISPLAY=:99.0"

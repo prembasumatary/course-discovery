@@ -47,7 +47,6 @@ clean:
 
 requirements.js:
 	npm install
-	$(NODE_BIN)/bower install
 
 requirements:
 	pip install -r requirements/local.txt --exists-action w

@@ -6,4 +6,5 @@
 // ------------------------------
 // #VARIABLES
 // ------------------------------
-$pattern-library-path: '../bower_components/edx-pattern-library/pattern-library' !default;
+$node-modules-path: '../../../node_modules';
+$pattern-library-path: '#{$node-modules-path}/pattern-library' !default;

@@ -86,7 +86,6 @@ dummy_locales:
 
 ignore_dirs:
     - assets
-    - static/bower_components
     - static/build
 
 # How should the generate step merge files?
