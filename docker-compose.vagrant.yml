@@ -1,0 +1,6 @@
+version: "2"
+
+services:
+  course-discovery:
+    ports:
+      - "18381:18381"

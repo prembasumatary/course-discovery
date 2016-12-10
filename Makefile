@@ -98,6 +98,12 @@ start-devstack:
 stop-devstack:
 	docker-compose down
 
+start-vagrant-devstack:
+	docker-compose -f docker-compose.yml -f docker-compose.vagrant.yml up -d
+
+stop-vagrant-devstack:
+	docker-compose -f docker-compose.yml -f docker-compose.vagrant.yml down
+
 open-devstack:
 	docker-compose up -d
 	docker exec -it course-discovery env TERM=$(TERM) /edx/app/discovery/devstack.sh open
