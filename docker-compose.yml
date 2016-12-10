@@ -11,8 +11,6 @@ services:
       MYSQL_USER: "discov001"
       MYSQL_PASSWORD: "password"
       MYSQL_DATABASE: "discovery"
-    ports:
-      - "3306:3306"
     volumes:
       - ./.dev/volumes/db:/var/lib/mysql
 
@@ -23,9 +21,6 @@ services:
       - ./.dev/volumes/es/data:/usr/share/elasticsearch/data
       - ./.dev/volumes/es/logs:/usr/share/elasticsearch/logs
       - ./.dev/volumes/es/plugins:/usr/share/elasticsearch/plugins
-    ports:
-      - "9200:9200"
-      - "9300:9300"
 
   memcache:
     image: memcached:1.4.24
@@ -51,7 +46,3 @@ services:
     environment:
       TEST_ELASTICSEARCH_URL: "http://es:9200"
       ENABLE_DJANGO_TOOLBAR: 1
-    ports:
-      - "18381:18381"
-      - "8381:8381"
-      - "48381:48381"
