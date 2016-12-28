@@ -4,3 +4,13 @@ services:
   course-discovery:
     ports:
       - "18381:18381"
+
+  db:
+    volumes:
+      - /edx/var/discovery/volumes/db:/var/lib/mysql
+
+  es:
+    volumes:
+      - /edx/var/discovery/volumes/es/data:/usr/share/elasticsearch/data
+      - /edx/var/discovery/volumes/es/logs:/usr/share/elasticsearch/logs
+      - /edx/var/discovery/volumes/es/plugins:/usr/share/elasticsearch/plugins

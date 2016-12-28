@@ -11,16 +11,10 @@ services:
       MYSQL_USER: "discov001"
       MYSQL_PASSWORD: "password"
       MYSQL_DATABASE: "discovery"
-    volumes:
-      - ./.dev/volumes/db:/var/lib/mysql
 
   es:
     image: elasticsearch:1.5.2
     container_name: es
-    volumes:
-      - ./.dev/volumes/es/data:/usr/share/elasticsearch/data
-      - ./.dev/volumes/es/logs:/usr/share/elasticsearch/logs
-      - ./.dev/volumes/es/plugins:/usr/share/elasticsearch/plugins
 
   memcache:
     image: memcached:1.4.24
@@ -34,10 +28,6 @@ services:
     # build: ../configuration/docker/build/discovery/
 
     container_name: course-discovery
-    volumes:
-      - .:/edx/app/discovery/discovery
-      - ./course_discovery/media:/edx/var/discovery/media
-      - ./course_discovery/assets:/edx/var/discovery/staticfiles
     command: /edx/app/discovery/devstack.sh start
     depends_on:
       - "db"
@@ -45,4 +35,3 @@ services:
       - "memcache"
     environment:
       TEST_ELASTICSEARCH_URL: "http://es:9200"
-      ENABLE_DJANGO_TOOLBAR: 1

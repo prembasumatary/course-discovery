@@ -2,6 +2,12 @@ version: "2"
 
 services:
   course-discovery:
+    environment:
+      ENABLE_DJANGO_TOOLBAR: 1
+    volumes:
+      - .:/edx/app/discovery/discovery
+      - ./course_discovery/media:/edx/var/discovery/media
+      - ./course_discovery/assets:/edx/var/discovery/staticfiles
     ports:
       - "18381:18381"
       - "8381:8381"
@@ -10,8 +16,14 @@ services:
   db:
     ports:
       - "3306:3306"
+    volumes:
+      - ./.dev/volumes/db:/var/lib/mysql
 
   es:
     ports:
       - "9200:9200"
       - "9300:9300"
+    volumes:
+      - ./.dev/volumes/es/data:/usr/share/elasticsearch/data
+      - ./.dev/volumes/es/logs:/usr/share/elasticsearch/logs
+      - ./.dev/volumes/es/plugins:/usr/share/elasticsearch/plugins
