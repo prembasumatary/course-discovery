@@ -12,6 +12,9 @@ export LANG=C.UTF-8
 cd /edx/app/discovery/discovery
 export PATH=$PATH:$PWD/node_modules/.bin
 
+# TODO Fix this in the image, too! Not sure how...
+rm -rf node_modules/
+
 # Make it so bower can run without sudo.
 # https://github.com/GeoNode/geonode/pull/1070
 echo '{ "allow_root": true }' > /root/.bowerrc
