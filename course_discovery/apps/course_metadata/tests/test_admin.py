@@ -57,7 +57,7 @@ class AdminTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(
             form.errors['__all__'],
-            ['Programs can only be activated if they have a banner image.']
+            ['Programs can only be activated if they have a banner image and courses.']
         )
         with self.assertRaises(ValueError):
             form.save()
