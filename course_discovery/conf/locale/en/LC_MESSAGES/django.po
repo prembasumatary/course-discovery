@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-03 15:35+0500\n"
+"POT-Creation-Date: 2017-02-02 15:42-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -210,8 +210,7 @@ msgid ""
 " try again. If the error persists, please contact the Engineering Team."
 msgstr ""
 
-#: apps/course_metadata/choices.py apps/publisher/choices.py
-#: apps/publisher/models.py
+#: apps/course_metadata/choices.py apps/publisher/models.py
 msgid "Published"
 msgstr ""
 
@@ -437,11 +436,6 @@ msgstr ""
 msgid "Invalid course key \"{lms_course_id}\""
 msgstr ""
 
-#: apps/publisher/api/serializers.py
-#, python-brace-format
-msgid "Cannot switch from state `{state}` to `{target_state}`"
-msgstr ""
-
 #: apps/publisher/choices.py
 msgid "Partner Manager"
 msgstr ""
@@ -460,18 +454,6 @@ msgstr ""
 
 #: apps/publisher/choices.py apps/publisher/views.py
 msgid "Course Team"
-msgstr ""
-
-#: apps/publisher/choices.py apps/publisher/models.py
-msgid "Draft"
-msgstr ""
-
-#: apps/publisher/choices.py
-msgid "Review"
-msgstr ""
-
-#: apps/publisher/choices.py templates/publisher/dashboard/_preview_ready.html
-msgid "Approved"
 msgstr ""
 
 #: apps/publisher/emails.py
@@ -620,6 +602,10 @@ msgid "Seat Type"
 msgstr ""
 
 #: apps/publisher/models.py
+msgid "Draft"
+msgstr ""
+
+#: apps/publisher/models.py
 msgid "Needs Review"
 msgstr ""
 
@@ -749,10 +735,6 @@ msgstr ""
 
 #: apps/publisher/views.py
 msgid "Please fill all required fields."
-msgstr ""
-
-#: apps/publisher/views.py
-msgid "Course  updated successfully."
 msgstr ""
 
 #: apps/publisher/views.py
@@ -2173,12 +2155,25 @@ msgstr ""
 msgid "End"
 msgstr ""
 
+#: templates/publisher/dashboard/_in_progress.html
+#: templates/publisher/dashboard/_published.html
+msgid "Target Content"
+msgstr ""
+
+#: templates/publisher/dashboard/_in_progress.html
+msgid "SEO Review"
+msgstr ""
+
 #: templates/publisher/dashboard/_preview_ready.html
 msgid ""
 "The following course run previews are available for course team approval. "
 "After the course team approves the preview, the edX marketing team will "
 "publish the course run on edx.org. The course team will receive an email "
 "message when the course run has been published."
+msgstr ""
+
+#: templates/publisher/dashboard/_preview_ready.html
+msgid "Approved"
 msgstr ""
 
 #: templates/publisher/dashboard/_preview_ready.html
@@ -2198,10 +2193,6 @@ msgstr ""
 
 #: templates/publisher/dashboard/_published.html
 msgid "Published Date"
-msgstr ""
-
-#: templates/publisher/dashboard/_published.html
-msgid "Target Content"
 msgstr ""
 
 #: templates/publisher/dashboard/_studio_requests.html
