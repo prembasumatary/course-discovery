@@ -319,3 +319,14 @@ class OrganizationUserRoleForm(BaseUserAdminForm):
 class CourseUserRoleForm(BaseUserAdminForm):
     class Meta(BaseUserAdminForm.Meta):
         model = CourseUserRole
+
+
+class CourseRunAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = CourseRun
+        fields = '__all__'
+
+    def clean_lms_course_id(self):
+        # in case of empty lms_course_id None should be save in db.
+        return self.cleaned_data['lms_course_id'] or None
