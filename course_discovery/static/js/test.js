@@ -21,4 +21,4 @@ function launch() {
   //console.log(ds + '<br/>Time: ' + (ms_end - ms_start) / 1000 + 's');
   console.log(d)
 }
-launch()
+launch();
