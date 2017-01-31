@@ -48,71 +48,16 @@ ROLE_WIDGET_HEADINGS = {
 }
 
 
-class Dashboard(mixins.LoginRequiredMixin, ListView):
+class Dashboard(ListView):
     """ Create Course View."""
     template_name = 'publisher/dashboard.html'
     default_published_days = 30
 
     def get_queryset(self):
-        user = self.request.user
-        if is_publisher_admin(user):
-            course_runs = CourseRun.objects.select_related('course').all()
-        elif is_internal_user(user):
-            internal_user_courses = Course.objects.filter(course_user_roles__user=user)
-            course_runs = CourseRun.objects.filter(course__in=internal_user_courses).select_related('course').all()
-        else:
-            organizations = get_objects_for_user(
-                user, OrganizationExtension.VIEW_COURSE, OrganizationExtension,
-                use_groups=True,
-                with_superuser=False
-            ).values_list('organization')
-            course_runs = CourseRun.objects.filter(
-                course__organizations__in=organizations
-            ).select_related('course').all()
-
-        return course_runs
+        return []
 
     def get_context_data(self, **kwargs):
         context = super(Dashboard, self).get_context_data(**kwargs)
-        course_runs = context.get('object_list')
-        published_course_runs = course_runs.filter(
-            state__name=State.PUBLISHED,
-            state__modified__gt=datetime.today() - timedelta(days=self.default_published_days)
-        ).select_related('state').order_by('-state__modified')
-
-        unpublished_course_runs = course_runs.exclude(state__name=State.PUBLISHED)
-
-        # Studio requests needs to check depending upon the user role with course
-        # Also user should be part of partner coordinator group.
-        if is_publisher_admin(self.request.user):
-            studio_request_courses = unpublished_course_runs.filter(lms_course_id__isnull=True)
-        elif is_partner_coordinator_user(self.request.user):
-            studio_request_courses = unpublished_course_runs.filter(lms_course_id__isnull=True).filter(
-                course__course_user_roles__role=PublisherUserRole.PartnerCoordinator
-            )
-        else:
-            studio_request_courses = []
-
-        context['studio_request_courses'] = [CourseRunWrapper(course_run) for course_run in studio_request_courses]
-        context['unpublished_course_runs'] = [CourseRunWrapper(course_run) for course_run in unpublished_course_runs]
-        context['published_course_runs'] = [CourseRunWrapper(course_run) for course_run in published_course_runs]
-        context['default_published_days'] = self.default_published_days
-
-        in_progress_course_runs = course_runs.filter(
-            state__name__in=[State.NEEDS_FINAL_APPROVAL, State.DRAFT]
-        ).select_related('state').order_by('-state__modified')
-
-        preview_course_runs = in_progress_course_runs.filter(
-            state__name=State.NEEDS_FINAL_APPROVAL,
-            preview_url__isnull=False
-        ).order_by('-state__modified')
-
-        context['in_progress_course_runs'] = [CourseRunWrapper(course_run) for course_run in in_progress_course_runs]
-        context['preview_course_runs'] = [CourseRunWrapper(course_run) for course_run in preview_course_runs]
-
-        # If user is course team member only show in-progress tab.
-        if mixins.check_roles_access(self.request.user):
-            context['can_view_all_tabs'] = True
 
         return context
 
