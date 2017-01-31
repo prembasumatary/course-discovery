@@ -1,4 +1,3 @@
-var diff_match_patch=require('googlediff');
 var dmp =new diff_match_patch();
 
 function launch() {
