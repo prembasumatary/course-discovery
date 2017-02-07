@@ -718,11 +718,12 @@ class ProgramTypeSerializer(serializers.ModelSerializer):
     Serializer for the Program Types
     """
     logo_image = StdImageSerializerField()
+    faq = FAQSerializer()
 
     class Meta:
         model = ProgramType
         fields = (
-            'name', 'logo_image',
+            'name', 'logo_image', 'faq'
         )
 
 

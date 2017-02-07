@@ -603,6 +603,7 @@ class ProgramType(TimeStampedModel):
     )
     slug = AutoSlugField(populate_from='name', editable=True, blank=True,
                          help_text=_('Leave this field blank to have the value generated automatically.'))
+    faq = models.ForeignKey(FAQ, null=True, blank=True)
 
     def __str__(self):
         return self.name

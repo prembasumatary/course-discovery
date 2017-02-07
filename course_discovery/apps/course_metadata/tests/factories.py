@@ -186,12 +186,21 @@ class PositionFactory(factory.DjangoModelFactory):
         model = Position
 
 
+class FAQFactory(factory.django.DjangoModelFactory):
+    class Meta(object):
+        model = FAQ
+
+    question = FuzzyText()
+    answer = FuzzyText()
+
+
 class ProgramTypeFactory(factory.django.DjangoModelFactory):
     class Meta(object):
         model = ProgramType
 
     name = FuzzyText()
     logo_image = FuzzyText(prefix='https://example.com/program/logo')
+    faq = factory.SubFactory(FAQFactory)
 
     @factory.post_generation
     def applicable_seat_types(self, create, extracted, **kwargs):
@@ -226,14 +235,6 @@ class JobOutlookItemFactory(factory.django.DjangoModelFactory):
         model = JobOutlookItem
 
     value = FuzzyText()
-
-
-class FAQFactory(factory.django.DjangoModelFactory):
-    class Meta(object):
-        model = FAQ
-
-    question = FuzzyText()
-    answer = FuzzyText()
 
 
 class ExpectedLearningItemFactory(factory.django.DjangoModelFactory):

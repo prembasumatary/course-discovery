@@ -839,6 +839,7 @@ class ProgramTypeSerializerTests(TestCase):
         return {
             'name': program_type.name,
             'logo_image': image_field.to_representation(program_type.logo_image),
+            'faq': FAQSerializer(program_type.faq).data,
         }
 
     def test_data(self):

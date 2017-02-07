@@ -206,4 +206,4 @@ class ProgramTypeViewSetTests(SerializationMixin, APITestCase):
         """ Verify the endpoint returns a list of all program_types. """
         ProgramTypeFactory.create_batch(3)
         expected = ProgramType.objects.all()
-        self.assert_list_results(self.list_path, expected, 4)
+        self.assert_list_results(self.list_path, expected, 7)
