@@ -56,11 +56,6 @@ class SeatAdmin(admin.ModelAdmin):
     raw_id_fields = ('changed_by',)
 
 
-@admin.register(State)
-class StateAdmin(admin.ModelAdmin):
-    raw_id_fields = ('changed_by',)
-
-
 @admin.register(PublisherUser)
 class PublisherUserAdmin(UserAdmin):
     add_form_template = 'publisher/admin/add_user_form.html'

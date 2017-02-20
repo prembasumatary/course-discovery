@@ -338,21 +338,6 @@ class SeatTests(TestCase):
         )
 
 
-class StateTests(TestCase):
-    """ Tests for the publisher `State` model. """
-
-    def setUp(self):
-        super(StateTests, self).setUp()
-        self.state = factories.StateFactory()
-
-    def test_str(self):
-        """ Verify casting an instance to a string returns a string containing the current state display name. """
-        self.assertEqual(
-            str(self.state),
-            self.state.get_name_display()
-        )
-
-
 class UserAttributeTests(TestCase):
     """ Tests for the publisher `UserAttribute` model. """
 

@@ -14,14 +14,8 @@ from course_discovery.apps.ietf_language_tags.models import LanguageTag
 from course_discovery.apps.publisher.choices import PublisherUserRole
 from course_discovery.apps.publisher.models import (
     Course, CourseRun, CourseRunState, CourseState, CourseUserRole, OrganizationExtension, OrganizationUserRole, Seat,
-    State, UserAttributes
+    UserAttributes
 )
-
-
-class StateFactory(factory.DjangoModelFactory):
-
-    class Meta:
-        model = State
 
 
 class CourseFactory(factory.DjangoModelFactory):

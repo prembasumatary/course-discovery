@@ -20,7 +20,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from course_discovery.apps.core.models import User
 from course_discovery.apps.publisher import emails, mixins
-from course_discovery.apps.publisher.choices import CourseStateChoices, PublisherUserRole
+from course_discovery.apps.publisher.choices import CourseStateChoices, PublisherUserRole, CourseRunStateChoices
 from course_discovery.apps.publisher.forms import CustomCourseForm, CustomCourseRunForm, CustomSeatForm, SeatForm
 from course_discovery.apps.publisher.models import (Course, CourseRun, CourseRunState, CourseState, CourseUserRole,
                                                     OrganizationExtension, Seat, State, UserAttributes)
@@ -579,7 +579,7 @@ class CourseRunEditView(mixins.LoginRequiredMixin, mixins.PublisherPermissionMix
                         seat_form.save(changed_by=user, course_run=course_run)
 
                     # in case of any updating move the course-run state to draft.
-                    if course_run.state.name != State.DRAFT:
+                    if course_run.state.name != CourseRunStateChoices.Draft:
                         course_run.change_state(user=user)
 
                     if lms_course_id != course_run.lms_course_id:

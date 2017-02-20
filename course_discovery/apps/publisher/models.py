@@ -235,8 +235,6 @@ class CourseRun(TimeStampedModel, ChangedByMixin):
         (PRIORITY_LEVEL_5, _('Level 5')),
     )
 
-    state = models.ForeignKey(State, null=True, blank=True)
-
     course = models.ForeignKey(Course, related_name='publisher_course_runs')
     lms_course_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
@@ -424,20 +422,6 @@ class Seat(TimeStampedModel, ChangedByMixin):
     @property
     def is_valid_seat(self):
         return self.type == self.AUDIT or self.type in [self.VERIFIED, self.PROFESSIONAL] and self.price > 0
-
-
-@receiver(pre_save, sender=CourseRun)
-def initialize_workflow(sender, instance, **kwargs):    # pylint: disable=unused-argument
-    """ Create Workflow State For CourseRun Before Saving. """
-    create_workflow_state(instance)
-
-
-def create_workflow_state(course_run):
-    """ Create Workflow State If Not Present."""
-    if not course_run.state:
-        state = State()
-        state.save()
-        course_run.state = state
 
 
 class UserAttributes(TimeStampedModel):
