@@ -1,7 +1,184 @@
-from haystack.backends.elasticsearch_backend import ElasticsearchSearchBackend, ElasticsearchSearchEngine
+from haystack.backends.elasticsearch_backend import ElasticsearchSearchBackend, ElasticsearchSearchEngine, ElasticsearchSearchQuery
+from haystack.models import SearchResult
 
 from course_discovery.apps.edx_haystack_extensions.elasticsearch_boost_config import get_elasticsearch_boost_config
 
+
+class DistinctCountsSearchQuery(ElasticsearchSearchQuery):
+    """
+    Query class that enables support for queries returning counts based on the unique value of a specified field.
+    Must be used in conjunction with the DistinctCountsSearchBackendMixin.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(DistinctCountsSearchQuery, self).__init__(*args, **kwargs)
+
+        # If set to the name of an index field, hit and facet counts will be computed using a cardinality
+        # aggregation so that each document with a unique value for that field is only counted once.
+        self.distinct_counts_by = None
+        self._distinct_hit_count = 0
+
+    def build_params(self, *args, **kwargs):
+        params = super(DistinctCountsSearchQuery, self).build_params(*args, **kwargs)
+        if self.distinct_counts_by:
+            params['distinct_counts_by'] = self.distinct_counts_by
+        return params
+
+    def _clone(self, *args, **kwargs):
+        clone = super(DistinctCountsSearchQuery, self)._clone(*args, **kwargs)
+        clone.distinct_counts_by = self.distinct_counts_by
+        return clone
+
+    def run(self, spelling_query=None, **kwargs):
+        """Builds and executes the query. Returns a list of search results."""
+        final_query = self.build_query()
+        search_kwargs = self.build_params(spelling_query, **kwargs)
+
+        if kwargs:
+            search_kwargs.update(kwargs)
+
+        results = self.backend.search(final_query, **search_kwargs)
+        self._results = results.get('results', [])
+        self._hit_count = results.get('hits', 0)
+        self._distinct_hit_count = results.get('distinct_hits', 0)
+        self._facet_counts = self.post_process_facets(results)
+        self._spelling_suggestion = results.get('spelling_suggestion', None)
+
+
+class DistinctCountsSearchBackendMixin(object):
+    """
+    Mixin that enables support for queries returning counts based on the unique value of a specified field.
+    """
+
+    # Override of ElasticsearchSearchBackend.search to add support for distinct_counts_by param.
+    # All of this code copied line by line from haystack/backends/elasticsearch_backend.py except
+    # for the call to _process_results.
+    def search(self, query_string, **kwargs):
+        if len(query_string) == 0:
+            return {
+                'results': [],
+                'hits': 0,
+            }
+
+        if not self.setup_complete:
+            self.setup()
+
+        search_kwargs = self.build_search_kwargs(query_string, **kwargs)
+        search_kwargs['from'] = kwargs.get('start_offset', 0)
+
+        order_fields = set()
+        for order in search_kwargs.get('sort', []):
+            for key in order.keys():
+                order_fields.add(key)
+
+        geo_sort = '_geo_distance' in order_fields
+
+        end_offset = kwargs.get('end_offset')
+        start_offset = kwargs.get('start_offset', 0)
+        if end_offset is not None and end_offset > start_offset:
+            search_kwargs['size'] = end_offset - start_offset
+
+        try:
+            raw_results = self.conn.search(body=search_kwargs,
+                                           index=self.index_name,
+                                           doc_type='modelresult',
+                                           _source=True)
+        except elasticsearch.TransportError as e:
+            if not self.silently_fail:
+                raise
+
+            self.log.error("Failed to query Elasticsearch using '%s': %s", query_string, e, exc_info=True)
+            raw_results = {}
+
+        return self._process_results(raw_results,
+                                     highlight=kwargs.get('highlight'),
+                                     result_class=kwargs.get('result_class', SearchResult),
+                                     distance_point=kwargs.get('distance_point'),
+                                     geo_sort=geo_sort,
+                                     distinct_counts_by=kwargs.get('distinct_counts_by'))
+
+    def build_search_kwargs(self, *args, **kwargs):
+        kwargs = dict(kwargs)
+        distinct_counts_by = kwargs.get('distinct_counts_by')
+        if 'distinct_counts_by' in kwargs:
+            del kwargs['distinct_counts_by']
+
+        search_kwargs = super(DistinctCountsSearchBackendMixin, self).build_search_kwargs(*args, **kwargs)
+
+        if distinct_counts_by:
+            distinct_count_agg_name = self._get_distinct_count_agg_name(distinct_counts_by)
+            aggregations = {distinct_count_agg_name: {'cardinality': {'field': distinct_counts_by}}}
+
+            if search_kwargs.get('facets'):
+                for facet_name, facet_config in search_kwargs['facets'].items():
+                    new_facet = self._convert_facet_to_aggregation(facet_config)
+                    new_facet['aggs'] = {distinct_count_agg_name: {'cardinality': {'field': distinct_counts_by}}}
+                    aggregations[facet_name] = new_facet
+                del search_kwargs['facets']
+
+            search_kwargs['aggs'] = aggregations
+
+        return search_kwargs
+
+    def _get_distinct_count_agg_name(self, distinct_counts_by_field):
+         return 'distinct_{}'.format(distinct_counts_by_field)
+
+    def _convert_facet_to_aggregation(self, facet_config):
+        # Only allow the simplest of facet types to be converted for now.
+        if len(facet_config.keys()) != 1:
+            raise RuntimeError('Facet config expected to have exactly 1 key')
+        elif 'terms' in facet_config:
+            return self._convert_terms_facet_to_aggregation(facet_config)
+        elif 'query' in facet_config:
+            return self._convert_query_facet_to_aggregation(facet_config)
+        else:
+            raise RuntimeError('Cannot convert unsupported facet type to aggregation')
+
+    def _convert_terms_facet_to_aggregation(self, facet_config):
+        supported_options = {'field', 'size'}
+        for option, value in facet_config['terms'].items():
+            if option not in supported_options:
+                raise RuntimeError('Cannot convert terms facet to aggregation: Unsupported option')
+
+        # If 'field' and 'size' are the only options present in the config, we shouldn't need to do anything
+        # to convert to an aggregation.
+        return facet_config
+
+    def _convert_query_facet_to_aggregation(self, facet_config):
+        if len(facet_config['query'].keys()) != 1 or 'query_string' not in facet_config['query']:
+            raise RuntimeError('Cannot convert query facet to aggregation: Unsupported options')
+
+        if len(facet_config['query']['query_string'].keys()) != 1 or 'query' not in facet_config['query']['query_string']:
+            raise RuntimeError('Cannot convert query facet to aggregation: Unsupported query_string option')
+
+        # To convert a query facet to an aggregation, all we need to do is wrap it in a filter.
+        return {'filter': facet_config}
+
+    def _process_results(self, raw_results, **kwargs):
+        kwargs = dict(kwargs)
+        distinct_counts_by = kwargs.get('distinct_counts_by')
+        if 'distinct_counts_by' in kwargs:
+            del kwargs['distinct_counts_by']
+
+        results = super(DistinctCountsSearchBackendMixin, self)._process_results(raw_results, **kwargs)
+        if distinct_counts_by:
+            aggs = raw_results['aggregations']
+            distinct_count_agg_name = self._get_distinct_count_agg_name(distinct_counts_by)
+            results['distinct_hits'] = aggs[distinct_count_agg_name]['value']
+
+            # All of the remaining aggregations should be for facets
+            facets = {'fields': {}, 'dates': {}, 'queries': {}}
+            for agg_name, data in aggs.items():
+                if agg_name == distinct_count_agg_name:
+                    continue
+                elif 'buckets' in data:
+                    facets['fields'][agg_name] = [(bucket['key'], bucket[distinct_count_agg_name]['value']) for bucket in data['buckets']]
+                else:
+                    facets['queries'][agg_name] = data[distinct_count_agg_name]['value']
+
+            results['facets'] = facets
+
+        return results
 
 class SimpleQuerySearchBackendMixin(object):
     """
@@ -9,7 +186,6 @@ class SimpleQuerySearchBackendMixin(object):
 
     Uses a basic query string query.
     """
-
     def build_search_kwargs(self, *args, **kwargs):
         """
         Override default `build_search_kwargs` method to set simpler default search query settings.
@@ -111,10 +287,11 @@ class ConfigurableElasticBackend(ElasticsearchSearchBackend):
 
 
 # pylint: disable=abstract-method
-class EdxElasticsearchSearchBackend(SimpleQuerySearchBackendMixin, NonClearingSearchBackendMixin,
-                                    ConfigurableElasticBackend):
+class EdxElasticsearchSearchBackend(DistinctCountsSearchBackendMixin, SimpleQuerySearchBackendMixin,
+                                    NonClearingSearchBackendMixin, ConfigurableElasticBackend):
     pass
 
 
 class EdxElasticsearchSearchEngine(ElasticsearchSearchEngine):
     backend = EdxElasticsearchSearchBackend
+    query = DistinctCountsSearchQuery
