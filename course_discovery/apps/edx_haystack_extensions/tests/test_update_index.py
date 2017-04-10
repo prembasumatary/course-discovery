@@ -1,3 +1,4 @@
+import ddt
 import mock
 import pytest
 from django.conf import settings
@@ -10,7 +11,7 @@ from course_discovery.apps.core.tests.mixins import ElasticsearchTestMixin
 from course_discovery.apps.course_metadata.tests.factories import CourseRunFactory
 from course_discovery.apps.edx_haystack_extensions.tests.mixins import SearchIndexTestMixin
 
-
+@ddt
 @override_settings(HAYSTACK_SIGNAL_PROCESSOR='haystack.signals.BaseSignalProcessor')
 class UpdateIndexTests(ElasticsearchTestMixin, SearchIndexTestMixin, TestCase):
     @freeze_time('2016-06-21')
@@ -35,8 +36,10 @@ class UpdateIndexTests(ElasticsearchTestMixin, SearchIndexTestMixin, TestCase):
         }
         self.assertDictEqual(response, expected)
 
-    def test_sanity_check_error(self):
-        """ Verify the command raises a CommandError if new index fails the sanity check. """
+    @ddt.data(False, True)
+    def test_sanity_check_error(self, sanity_check_disabled):
+        """ Verify the command raises a CommandError if new index fails the sanity check.
+        But does not raise an error if the sanity check is disabled. """
         CourseRunFactory()
         record_count = 2
         additional_runs = int(100 * settings.INDEX_SIZE_CHANGE_THRESHOLD + 1)
@@ -48,7 +51,9 @@ class UpdateIndexTests(ElasticsearchTestMixin, SearchIndexTestMixin, TestCase):
                             'update_index.Command.set_alias', return_value=True):
                 with mock.patch('course_discovery.apps.edx_haystack_extensions.management.commands.'
                                 'update_index.Command.get_record_count', return_value=record_count):
-                    call_command('update_index')
+                    command_args = ['--sanity-check-disabled'] if sanity_check_disabled else []
+                    call_command('update_index', *command_args)
+
 
     def test_sanity_check_success(self):
         """ Verify the command does not raise a CommandError error if the new index passes the sanity check. """

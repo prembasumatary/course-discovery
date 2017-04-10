@@ -16,8 +16,16 @@ class Command(HaystackCommand):
     def get_record_count(self, conn, index_name):
         return conn.count(index_name).get('count')
 
+    def add_arguments(self, parser):
+        parser.add_argument('--disable-sanity-check',
+                            action='store_true',
+                            dest='disable_sanity_check',
+                            help='Do not perform sanity check before completing index update.')
+
     def handle(self, *items, **options):
         self.backends = options.get('using')
+        disable_sanity_check = options.get('disable_sanity_check')
+
         if not self.backends:
             self.backends = list(haystack_connections.connections_info.keys())
 
@@ -35,9 +43,10 @@ class Command(HaystackCommand):
 
         # Set the alias (from settings) to the timestamped catalog.
         for backend, index, alias in alias_mappings:
-            record_count_is_sane, index_info_string = self.sanity_check_new_index(backend.conn, index, record_count)
-            if not record_count_is_sane:
-                raise CommandError('Sanity check failed for new index. ' + index_info_string)
+            if not disable_sanity_check:
+                record_count_is_sane, index_info_string = self.sanity_check_new_index(backend.conn, index, record_count)
+                if not record_count_is_sane:
+                    raise CommandError('Sanity check failed for new index. ' + index_info_string)
             self.set_alias(backend, alias, index)
 
     def percentage_change(self, current, previous):
