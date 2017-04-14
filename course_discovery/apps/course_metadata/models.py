@@ -396,6 +396,11 @@ class CourseRun(TimeStampedModel):
 
     objects = CourseRunQuerySet.as_manager()
 
+    @property
+    def price(self):
+        prices = set([seat.price for seat in self.seats.all()])
+        return max(prices) if prices else None
+
     def _enrollable_paid_seats(self):
         """
         Return a QuerySet that may be used to fetch the enrollable paid Seats (Seats with price > 0 and no
@@ -931,6 +936,11 @@ class Program(TimeStampedModel):
                 currencies_with_total[seat.currency] = current_total
 
         return currencies_with_total
+
+    @property
+    def price(self):
+        prices = [seat.price for seat in self.seats]
+        return max(prices) if prices else None
 
     @property
     def price_ranges(self):

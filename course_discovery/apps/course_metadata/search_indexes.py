@@ -52,6 +52,10 @@ class BaseIndex(indexes.SearchIndex):
     aggregation_key = indexes.CharField()
     content_type = indexes.CharField(faceted=True)
     text = indexes.CharField(document=True, use_template=True)
+    video_url = indexes.CharField(null=True)
+
+    def prepare_video_url(self, obj):
+        return obj.video.src if obj.video else None
 
     def prepare_content_type(self, obj):  # pylint: disable=unused-argument
         return self.model.__name__.lower()
@@ -140,6 +144,8 @@ class CourseRunIndex(BaseCourseIndex, indexes.Indexable):
     announcement = indexes.DateTimeField(model_attr='announcement', null=True)
     min_effort = indexes.IntegerField(model_attr='min_effort', null=True)
     max_effort = indexes.IntegerField(model_attr='max_effort', null=True)
+    weeks_to_complete = indexes.IntegerField(null=True)
+    price = indexes.IntegerField(null=True)
     language = indexes.CharField(null=True, faceted=True)
     transcript_languages = indexes.MultiValueField(faceted=True)
     pacing_type = indexes.CharField(model_attr='pacing_type', null=True, faceted=True)
@@ -158,6 +164,12 @@ class CourseRunIndex(BaseCourseIndex, indexes.Indexable):
     subject_uuids = indexes.MultiValueField()
     has_enrollable_paid_seats = indexes.BooleanField(null=False)
     paid_seat_enrollment_end = indexes.DateTimeField(null=True)
+
+    def prepare_weeks_to_complete(self, obj):
+        return obj.weeks_to_complete
+
+    def prepare_price(self, obj):
+        return obj.price
 
     def prepare_aggregation_key(self, obj):
         # Aggregate CourseRuns by Course key since that is how we plan to dedup CourseRuns on the marketing site.
@@ -235,6 +247,18 @@ class ProgramIndex(BaseIndex, indexes.Indexable, OrganizationsMixin):
     start = indexes.DateTimeField(model_attr='start', null=True, faceted=True)
     seat_types = indexes.MultiValueField(model_attr='seat_types', null=True, faceted=True)
     published = indexes.BooleanField(null=False, faceted=True)
+    weeks_to_complete_min = indexes.IntegerField(null=True)
+    weeks_to_complete_max = indexes.IntegerField(null=True)
+    price = indexes.IntegerField(null=True)
+
+    def prepare_weeks_to_complete_min(self, obj):
+        return obj.weeks_to_complete_min
+
+    def prepare_weeks_to_complete_min(self, obj):
+        return obj.weeks_to_complete_max
+
+    def prepare_price(self, obj):
+        return obj.price
 
     def prepare_aggregation_key(self, obj):
         return 'program:{}'.format(obj.uuid)

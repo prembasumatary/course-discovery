@@ -53,7 +53,7 @@ COURSE_RUN_SEARCH_FIELDS = (
     'enrollment_end', 'pacing_type', 'language', 'transcript_languages', 'marketing_url', 'content_type', 'org',
     'number', 'seat_types', 'image_url', 'type', 'level_type', 'availability', 'published', 'partner', 'program_types',
     'authoring_organization_uuids', 'subject_uuids', 'staff_uuids', 'mobile_available', 'logo_image_urls',
-    'aggregation_key',
+    'aggregation_key', 'video','min_effort', 'max_effort', 'weeks_to_complete', 'video_url', 'price',
 )
 
 PROGRAM_FACET_FIELD_OPTIONS = {
@@ -68,7 +68,12 @@ BASE_PROGRAM_FIELDS = (
 )
 
 PROGRAM_SEARCH_FIELDS = BASE_PROGRAM_FIELDS + ('aggregation_key', 'authoring_organizations',
-                                               'authoring_organization_uuids', 'subject_uuids', 'staff_uuids',)
+                                               'authoring_organization_uuids', 'subject_uuids', 'staff_uuids',
+                                               'weeks_to_complete_min', 'weeks_to_complete_max',
+                                                'min_hours_effort_per_week', 'max_hours_effort_per_week',
+                                                'video_url', 'price',
+                                               )
+
 PROGRAM_FACET_FIELDS = BASE_PROGRAM_FIELDS + ('organizations',)
 
 PREFETCH_FIELDS = {
@@ -1089,6 +1094,7 @@ class CourseFacetSerializer(BaseHaystackFacetSerializer):
 
 class CourseRunSearchSerializer(HaystackSerializer):
     availability = serializers.SerializerMethodField()
+    video = VideoSerializer()
 
     def get_availability(self, result):
         return result.object.availability
