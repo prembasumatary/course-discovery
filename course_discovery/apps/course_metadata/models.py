@@ -396,11 +396,6 @@ class CourseRun(TimeStampedModel):
 
     objects = CourseRunQuerySet.as_manager()
 
-    @property
-    def price(self):
-        prices = set([seat.price for seat in self.seats.all()])
-        return max(prices) if prices else None
-
     def _enrollable_paid_seats(self):
         """
         Return a QuerySet that may be used to fetch the enrollable paid Seats (Seats with price > 0 and no
@@ -472,6 +467,15 @@ class CourseRun(TimeStampedModel):
                 enrollable_seats.append(seat)
 
         return enrollable_seats
+
+    @property
+    def video_url(self):
+        return self.video.src if self.video else None
+
+    @property
+    def price(self):
+        prices = set([seat.price for seat in self.seats.all()])
+        return max(prices) if prices else None
 
     @property
     def program_types(self):
@@ -775,6 +779,10 @@ class Program(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def video_url(self):
+        return self.video.src if self.video else None
 
     @property
     def is_program_eligible_for_one_click_purchase(self):

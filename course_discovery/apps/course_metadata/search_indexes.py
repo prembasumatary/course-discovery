@@ -52,10 +52,6 @@ class BaseIndex(indexes.SearchIndex):
     aggregation_key = indexes.CharField()
     content_type = indexes.CharField(faceted=True)
     text = indexes.CharField(document=True, use_template=True)
-    video_url = indexes.CharField(null=True)
-
-    def prepare_video_url(self, obj):
-        return obj.video.src if obj.video else None
 
     def prepare_content_type(self, obj):  # pylint: disable=unused-argument
         return self.model.__name__.lower()
@@ -164,6 +160,10 @@ class CourseRunIndex(BaseCourseIndex, indexes.Indexable):
     subject_uuids = indexes.MultiValueField()
     has_enrollable_paid_seats = indexes.BooleanField(null=False)
     paid_seat_enrollment_end = indexes.DateTimeField(null=True)
+    video_url = indexes.CharField(null=True)
+
+    def prepare_video_url(self, obj):
+        return obj.video_url
 
     def prepare_weeks_to_complete(self, obj):
         return obj.weeks_to_complete
@@ -250,6 +250,10 @@ class ProgramIndex(BaseIndex, indexes.Indexable, OrganizationsMixin):
     weeks_to_complete_min = indexes.IntegerField(null=True)
     weeks_to_complete_max = indexes.IntegerField(null=True)
     price = indexes.IntegerField(null=True)
+    video_url = indexes.CharField(null=True)
+
+    def prepare_video_url(self, obj):
+        return obj.video_url
 
     def prepare_weeks_to_complete_min(self, obj):
         return obj.weeks_to_complete_min

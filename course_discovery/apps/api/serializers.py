@@ -53,7 +53,7 @@ COURSE_RUN_SEARCH_FIELDS = (
     'enrollment_end', 'pacing_type', 'language', 'transcript_languages', 'marketing_url', 'content_type', 'org',
     'number', 'seat_types', 'image_url', 'type', 'level_type', 'availability', 'published', 'partner', 'program_types',
     'authoring_organization_uuids', 'subject_uuids', 'staff_uuids', 'mobile_available', 'logo_image_urls',
-    'aggregation_key', 'video', 'min_effort', 'max_effort', 'weeks_to_complete', 'video_url', 'price',
+    'aggregation_key', 'video_url', 'min_effort', 'max_effort', 'weeks_to_complete', 'video_url', 'price',
 )
 
 PROGRAM_FACET_FIELD_OPTIONS = {
@@ -1093,7 +1093,6 @@ class CourseFacetSerializer(BaseHaystackFacetSerializer):
 
 class CourseRunSearchSerializer(HaystackSerializer):
     availability = serializers.SerializerMethodField()
-    video = VideoSerializer()
 
     def get_availability(self, result):
         return result.object.availability
