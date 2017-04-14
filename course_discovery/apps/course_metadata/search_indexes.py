@@ -254,7 +254,7 @@ class ProgramIndex(BaseIndex, indexes.Indexable, OrganizationsMixin):
     def prepare_weeks_to_complete_min(self, obj):
         return obj.weeks_to_complete_min
 
-    def prepare_weeks_to_complete_min(self, obj):
+    def prepare_weeks_to_complete_max(self, obj):
         return obj.weeks_to_complete_max
 
     def prepare_price(self, obj):

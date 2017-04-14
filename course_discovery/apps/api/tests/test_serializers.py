@@ -1225,7 +1225,7 @@ class ProgramSearchSerializerTests(TestCase):
             'min_hours_effort_per_week': program.min_hours_effort_per_week,
             'max_hours_effort_per_week': program.max_hours_effort_per_week,
             'video_url': program.video_url,
-            'price': price
+            'price': program.price
         }
 
     def test_data(self):
