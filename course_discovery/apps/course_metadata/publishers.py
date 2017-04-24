@@ -2,7 +2,6 @@ import json
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
-from django.utils.functional import cached_property
 from django.utils.text import slugify
 
 from course_discovery.apps.course_metadata.choices import CourseRunStatus
@@ -256,11 +255,7 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
                     self.edit_node(node_id, node_data)
 
             if node_id:
-                alias_list_url = self.alias_list_url(slugify(obj.title, allow_unicode=True))
-                title_delete_alias_path = self.alias_delete_path(alias_list_url)
-                if title_delete_alias_path:
-                    self.delete_alias(title_delete_alias_path)
-
+                self.get_and_delete_alias(slugify(obj.title, allow_unicode=True))
                 self.update_node_alias(obj, node_id, previous_obj)
 
     def serialize_obj(self, obj):
@@ -298,11 +293,12 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
         """
         new_alias = self.alias(obj)
         previous_alias = self.alias(previous_obj) if previous_obj else None
-        alias_list_url = self.alias_list_url(obj.marketing_slug)
-        new_alias_delete_path = self.alias_delete_path(alias_list_url)
+        new_alias_delete_path = self.alias_delete_path(self.get_alias_list_url(obj.marketing_slug))
 
         if new_alias != previous_alias or not new_alias_delete_path:
-            alias_add_url = '{}/add'.format(self.alias_api_base)
+            # Delete old alias before saving the new one.
+            if previous_obj and previous_obj.marketing_slug != obj.marketing_slug:
+                self.get_and_delete_alias(previous_obj.marketing_slug)
 
             headers = {
                 'content-type': 'application/x-www-form-urlencoded'
@@ -316,20 +312,27 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
             }
             data.update(self.alias_form_inputs(self.alias_add_url))
 
-            response = self.client.api_session.post(alias_add_url, headers=headers, data=data)
+            response = self.client.api_session.post(self.alias_add_url, headers=headers, data=data)
 
             if response.status_code != 200:
                 raise AliasCreateError
 
-            # Delete old alias after saving the new one.
-            if previous_obj and previous_obj.marketing_slug != obj.marketing_slug:
-                alias_list_url = self.alias_list_url(previous_obj.marketing_slug)
-                alias_delete_path = self.alias_delete_path(alias_list_url)
+    def get_and_delete_alias(self, slug):
+        """
+        Get the URL alias for the provided slug and delete it if exists.
 
-                if alias_delete_path:
-                    self.delete_alias(alias_delete_path)
+        Arguments:
+            slug (str): slug for which URL alias has to be fetched.
+        """
+        alias_list_url = self.get_alias_list_url(slug)
+        alias_delete_path = self.alias_delete_path(alias_list_url)
+        if alias_delete_path:
+            self.delete_alias(alias_delete_path)
 
     def delete_alias(self, alias_delete_path):
+        """
+        Delete the url alias for provided path
+        """
         headers = {
             'content-type': 'application/x-www-form-urlencoded'
         }
@@ -390,7 +393,7 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
 
         return delete_element[0].get('href') if delete_element else None
 
-    def alias_list_url(self, slug):
+    def get_alias_list_url(self, slug):
         return '{base}/list/{slug}'.format(
             base=self.alias_api_base,
             slug=slug
