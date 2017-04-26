@@ -157,7 +157,6 @@ class MarketingSitePublisherTestMixin(MarketingSiteAPIClientTestMixin):
                  '</input><input name="form_token" value="2"></input></form></html>'
         )
 
-
     def mock_get_delete_form(self, alias, status=200):
         responses.add(
             responses.GET,
