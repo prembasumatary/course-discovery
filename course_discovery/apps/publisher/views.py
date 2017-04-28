@@ -24,9 +24,9 @@ from course_discovery.apps.publisher.choices import CourseRunStateChoices, Cours
 from course_discovery.apps.publisher.forms import CustomCourseForm, CustomCourseRunForm, CustomSeatForm
 from course_discovery.apps.publisher.models import (Course, CourseRun, CourseRunState, CourseState, CourseUserRole,
                                                     OrganizationExtension, UserAttributes)
-from course_discovery.apps.publisher.utils import (get_internal_users, has_role_for_course, is_internal_user,
-                                                   is_project_coordinator_user, is_publisher_admin, make_bread_crumbs,
-                                                   parse_datetime_field)
+from course_discovery.apps.publisher.utils import (get_internal_users, get_users_organizations, has_role_for_course,
+                                                   is_internal_user, is_project_coordinator_user, is_publisher_admin,
+                                                   make_bread_crumbs, parse_datetime_field)
 from course_discovery.apps.publisher.wrappers import CourseRunWrapper
 
 logger = logging.getLogger(__name__)
@@ -546,12 +546,14 @@ class CourseRunEditView(mixins.LoginRequiredMixin, mixins.PublisherPermissionMix
         return reverse(self.success_url, kwargs={'pk': self.object.id})
 
     def get_context_data(self):
+        user = self.request.user
         return {
             'course_run': self.get_object(),
             'publisher_hide_features_for_pilot': waffle.switch_is_active('publisher_hide_features_for_pilot'),
             'publisher_add_instructor_feature': waffle.switch_is_active('publisher_add_instructor_feature'),
-            'is_internal_user': mixins.check_roles_access(self.request.user),
-            'is_project_coordinator': is_project_coordinator_user(self.request.user),
+            'is_internal_user': mixins.check_roles_access(user),
+            'is_project_coordinator': is_project_coordinator_user(user),
+            'organizations': get_users_organizations(user)
         }
 
     def get(self, request, *args, **kwargs):

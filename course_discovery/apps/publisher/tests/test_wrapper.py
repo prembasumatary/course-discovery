@@ -196,7 +196,8 @@ class CourseRunWrapperTests(TestCase):
                 'image_url': staff.get_profile_image_url,
                 'profile_url': staff.profile_url,
                 'social_networks': {},
-                'bio': staff.bio
+                'bio': staff.bio,
+                'email': staff.email
             },
             {
                 'uuid': str(staff_2.uuid),
@@ -206,7 +207,8 @@ class CourseRunWrapperTests(TestCase):
                 'organization': position.organization_name,
                 'profile_url': staff.profile_url,
                 'social_networks': {'facebook': facebook.value, 'twitter': twitter.value},
-                'bio': staff_2.bio
+                'bio': staff_2.bio,
+                'email': staff_2.email
             }
         ]
 

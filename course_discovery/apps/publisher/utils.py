@@ -1,6 +1,9 @@
 """ Publisher Utils."""
 from dateutil import parser
+from django.db.models.functions import Lower
+
 from course_discovery.apps.core.models import User
+from course_discovery.apps.course_metadata.models import Organization
 from course_discovery.apps.publisher.constants import (ADMIN_GROUP_NAME, INTERNAL_USER_GROUP_NAME,
                                                        PROJECT_COORDINATOR_GROUP_NAME)
 
@@ -128,3 +131,26 @@ def parse_datetime_field(date):
 
     except ValueError:
         return
+
+
+def get_users_organizations(user):
+    """
+    Get organizations for user.
+
+    Args:
+        user (Object): User object
+    Returns:
+        Organization (QuerySet): returns Organization objects queryset
+    """
+    organizations = Organization.objects.filter(
+        organization_extension__organization_id__isnull=False
+    ).order_by(Lower('key'))
+
+    from course_discovery.apps.publisher.mixins import check_roles_access
+    if not check_roles_access(user):
+        # If not internal user return only those organizations which belongs to user.
+        organizations = organizations.filter(
+            organization_extension__group__in=user.groups.all()
+        ).order_by(Lower('key'))
+
+    return organizations
