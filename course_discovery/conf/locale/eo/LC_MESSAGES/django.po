@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-27 12:23+0500\n"
+"POT-Creation-Date: 2017-04-28 12:39+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1194,6 +1194,15 @@ msgstr "Läst Nämé Ⱡ'σяєм ιρѕυм ∂σł#"
 #: templates/publisher/course_run_detail/_salesforce.html
 msgid "Title"
 msgstr "Tïtlé Ⱡ'σяєм ιρѕ#"
+
+#: templates/publisher/_add_instructor_popup.html
+#: templates/publisher/course_run_detail/_instructor_profile.html
+msgid "Email"
+msgstr "Émäïl Ⱡ'σяєм ιρѕ#"
+
+#: templates/publisher/_add_instructor_popup.html
+msgid "Institution email is preferred"
+msgstr "Ìnstïtütïön émäïl ïs préférréd Ⱡ'σяєм ιρѕυм ∂σłσя ѕιт αмєт, ¢σηѕє¢т#"
 
 #: templates/publisher/_add_instructor_popup.html
 #: templates/publisher/course_run_detail/_instructor_profile.html
