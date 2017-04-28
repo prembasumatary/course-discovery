@@ -255,7 +255,7 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
                     self.edit_node(node_id, node_data)
 
             if node_id:
-                self.get_and_delete_alias(slugify(obj.title, allow_unicode=True))
+                self.get_and_delete_alias(slugify(obj.title))
                 self.update_node_alias(obj, node_id, previous_obj)
 
     def serialize_obj(self, obj):
@@ -305,12 +305,12 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
             }
 
             data = {
+                **self.alias_form_inputs(self.alias_add_url),
                 'alias': new_alias,
                 'form_id': 'path_admin_form',
                 'op': 'Save',
                 'source': 'node/{}'.format(node_id),
             }
-            data.update(self.alias_form_inputs(self.alias_add_url))
 
             response = self.client.api_session.post(self.alias_add_url, headers=headers, data=data)
 
@@ -342,11 +342,11 @@ class ProgramMarketingSitePublisher(BaseMarketingSitePublisher):
         )
 
         data = {
+            **self.alias_form_inputs(alias_delete_url),
             'confirm': 1,
             'form_id': 'path_admin_delete_confirm',
             'op': 'Confirm'
         }
-        data.update(self.alias_form_inputs(alias_delete_url))
 
         response = self.client.api_session.post(alias_delete_url, headers=headers, data=data)
 
